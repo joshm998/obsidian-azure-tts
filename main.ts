@@ -1,7 +1,7 @@
 import { GenerateTTSModal } from 'modal';
 import { App, Editor, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
-interface AzureTTSSettings {
+export interface AzureTTSSettings {
 	api_key: string;
 }
 
@@ -29,7 +29,7 @@ export default class AzureTTSPlugin extends Plugin {
 
 				if (leaf) {
 					if (!checking) {
-						new GenerateTTSModal(this.app, sel, onSubmit).open();
+						new GenerateTTSModal(this.app, this.settings, sel, onSubmit).open();
 					}
 					return true;
 				}

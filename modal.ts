@@ -1,17 +1,24 @@
+import { AzureTTSSettings } from "main";
 import { App, Modal, Setting } from "obsidian";
+import { generateTTS } from "services/azurespeech";
 
 export class GenerateTTSModal extends Modal {
     inputText: string;
+    settings: AzureTTSSettings;
+    app: App;
 
     onSubmit: (mediaURL: string) => void;
 
     constructor(
         app: App,
+        settings: AzureTTSSettings,
         inputText: string,
         onSubmit: (mediaURL: string) => void
     ) {
         super(app);
+        this.app = app;
         this.inputText = inputText;
+        this.settings = settings;
         this.onSubmit = onSubmit;
     }
 
@@ -33,6 +40,7 @@ export class GenerateTTSModal extends Modal {
                     .setCta()
                     .onClick(() => {
                         this.close();
+                        generateTTS(this.app, this.settings, this.inputText);
                         this.onSubmit(this.inputText);
                     })
             );
