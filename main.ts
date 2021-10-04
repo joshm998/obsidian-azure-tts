@@ -1,15 +1,16 @@
-import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { GenerateTTSModal } from 'modal';
+import { App, Editor, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
-interface MyPluginSettings {
+interface AzureTTSSettings {
 	api_key: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: AzureTTSSettings = {
 	api_key: ''
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class AzureTTSPlugin extends Plugin {
+	settings: AzureTTSSettings;
 
 	async onload() {
 		console.log('loading plugin');
@@ -19,14 +20,16 @@ export default class MyPlugin extends Plugin {
 		this.addCommand({
 			id: 'generate-tts',
 			name: 'Generate TTS',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
-			checkCallback: (checking: boolean) => {
+			editorCheckCallback: (checking: boolean, editor: Editor) => {
+				const sel = editor.getSelection()
 				let leaf = this.app.workspace.activeLeaf;
+				const onSubmit = (media: String) => {
+					editor.replaceSelection(`${sel}\n![[${media}]]`);
+				};
+
 				if (leaf) {
 					if (!checking) {
-						new TranscodingModal(this.app).open();
+						new GenerateTTSModal(this.app, sel, onSubmit).open();
 					}
 					return true;
 				}
@@ -34,21 +37,10 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		this.registerCodeMirror((cm: CodeMirror.Editor) => {
-			console.log('codemirror', cm);
-		});
-
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
-
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		this.addSettingTab(new TTSSettingTab(this.app, this));
 	}
 
 	onunload() {
-		console.log('unloading plugin');
 	}
 
 	async loadSettings() {
@@ -60,36 +52,20 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class TranscodingModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+class TTSSettingTab extends PluginSettingTab {
+	plugin: AzureTTSPlugin;
 
-	onOpen() {
-		let {contentEl} = this;
-		contentEl.setText('Generating TTS');
-	}
-
-	onClose() {
-		let {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: AzureTTSPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
 	display(): void {
-		let {containerEl} = this;
+		let { containerEl } = this;
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Obsidian Azure TTS Settings'});
+		containerEl.createEl('h2', { text: 'Obsidian Azure TTS Settings' });
 
 		new Setting(containerEl)
 			.setName('API Key')
