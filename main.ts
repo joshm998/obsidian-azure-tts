@@ -1,11 +1,11 @@
 import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 interface MyPluginSettings {
-	mySetting: string;
+	api_key: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+	api_key: ''
 }
 
 export default class MyPlugin extends Plugin {
@@ -16,15 +16,9 @@ export default class MyPlugin extends Plugin {
 
 		await this.loadSettings();
 
-		this.addRibbonIcon('dice', 'Sample Plugin', () => {
-			new Notice('This is a notice!');
-		});
-
-		this.addStatusBarItem().setText('Status Bar Text');
-
 		this.addCommand({
-			id: 'open-sample-modal',
-			name: 'Open Sample Modal',
+			id: 'generate-tts',
+			name: 'Generate TTS',
 			// callback: () => {
 			// 	console.log('Simple Callback');
 			// },
@@ -32,7 +26,7 @@ export default class MyPlugin extends Plugin {
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
 					if (!checking) {
-						new SampleModal(this.app).open();
+						new TranscodingModal(this.app).open();
 					}
 					return true;
 				}
@@ -66,14 +60,14 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
+class TranscodingModal extends Modal {
 	constructor(app: App) {
 		super(app);
 	}
 
 	onOpen() {
 		let {contentEl} = this;
-		contentEl.setText('Woah!');
+		contentEl.setText('Generating TTS');
 	}
 
 	onClose() {
@@ -95,17 +89,16 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
+		containerEl.createEl('h2', {text: 'Obsidian Azure TTS Settings'});
 
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
+			.setName('API Key')
+			.setDesc('Key for the Azure Speech Service')
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
+				.setPlaceholder('Enter API Key...')
 				.setValue('')
 				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
+					this.plugin.settings.api_key = value;
 					await this.plugin.saveSettings();
 				}));
 	}
